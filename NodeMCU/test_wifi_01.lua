@@ -1,6 +1,7 @@
--- One time ESP Setup --
-tmr.alarm(0, 2000, 1, function() ShowWifiStatus() end )
-tmr.alarm(1, 10000, 1, function() ReconnectWifi() end )
+
+tmr.alarm(0, 10000, 1, function() ShowWifiStatus() end )
+tmr.alarm(1, 30000, 1, function() ReconnectWifi() end )
+
 
 function ShowWifiStatus()
   i = wifi.sta.getip()
