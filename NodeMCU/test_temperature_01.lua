@@ -16,10 +16,11 @@ end
 
 -- init alarms
 tmr.alarm(1, 1000, 0, function() ReconnectWifi() end ) -- initial connect to WiFi
---tmr.alarm(2, 10000, 1, function() ShowWifiStatus() end )
-tmr.alarm(3, 60000, 1, function() ReconnectWifi() end )
+tmr.alarm(2, 60000, 1, function() ReconnectWifi() end )
+tmr.alarm(3, 10000, 1, function() ShowWifiStatus() end )
 tmr.alarm(4, 1000, 1, function() CheckCurrentTemperature() end )
 tmr.alarm(5, 10000, 1, function() RunCooler() end )
+
 
 
 -- ****************************************************************
@@ -75,11 +76,11 @@ end
 
 
 function ShowWifiStatus()
-  i = wifi.sta.getip()
-  if i == nil then
-    i = "no IP"
+  local myIP = wifi.sta.getip()
+  if myIP == nil then
+    myIP = "no IP"
   end
-  print(wifi.sta.status() .. "  " .. i)
+  print("WiFi status: " .. wifi.sta.status() .. " , IP:  " .. myIP .. " , MAC " .. wifi.sta.getmac())
 end
 
 
