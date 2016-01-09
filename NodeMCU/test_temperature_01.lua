@@ -6,6 +6,8 @@ temperature_high = 26
 temperature_low = 24
 
 -- init global variables
+max_temperature_high = 40;
+min_temperature_low = 10;
 cooler_is_active = false;
 m_temperature = {}
 m_humidity = {}
@@ -17,10 +19,10 @@ end
 -- init alarms
 tmr.alarm(1, 1000, 0, function() ReconnectWifi() end ) -- initial connect to WiFi
 tmr.alarm(2, 60000, 1, function() ReconnectWifi() end )
-tmr.alarm(3, 10000, 1, function() ShowWifiStatus() end )
+tmr.alarm(3, 10000, 0, function() ShowWifiStatus() end )
 tmr.alarm(4, 1000, 1, function() CheckCurrentTemperature() end )
 tmr.alarm(5, 10000, 1, function() RunCooler() end )
-
+tmr.alarm(6, 5000, 0, function() StartHttpServer() end )  -- start HTTP server
 
 
 -- ****************************************************************
@@ -91,4 +93,48 @@ function ReconnectWifi()
     wifi.sta.config (wifi_name, wifi_pwd ) 
     wifi.sta.connect()
   end
+end
+
+
+function StartHttpServer()
+    srv=net.createServer(net.TCP)
+    srv:listen(80, function(conn)
+        conn:on("receive", function(client,request)
+            local buf = "";
+            local _, _, method, path, vars = string.find(request, "([A-Z]+) (.+)?(.+) HTTP");
+            if(method == nil)then
+                _, _, method, path = string.find(request, "([A-Z]+) (.+) HTTP");
+            end
+            local _GET = {}
+            if (vars ~= nil)then
+                for k, v in string.gmatch(vars, "(%w+)=(%w+)&*") do
+                    _GET[k] = v
+                end
+            end
+            
+            if(_GET.btn == "HighIncrease" and temperature_high <= max_temperature_high and temperature_high > temperature_low) then
+               temperature_high = temperature_high + 1;
+               --print("Increase HIGH threshold value to ");
+            elseif(_GET.btn == "HighReduce" and temperature_high <= max_temperature_high and temperature_high > temperature_low + 1) then
+               temperature_high = temperature_high - 1;
+               --print("Reduce HIGH threshold value to ");
+            elseif(_GET.btn == "LowIncrease" and temperature_low >= min_temperature_low and temperature_high - 1 > temperature_low) then
+               temperature_low = temperature_low + 1;
+               --print("Increse LOW threshold value to ");
+            elseif(_GET.btn == "LowReduce" and temperature_low >= min_temperature_low and temperature_high > temperature_low) then
+               temperature_low = temperature_low - 1;
+               --print("Reduce LOW threshold value to ");
+            end
+
+            buf = buf.."<h3><b><font color='#0000FF'>Current temperature: " .. GetAverageTemperature() .. " C</font></b></h3>";
+            buf = buf.."<table border='0'><tr><td>High threshold</td> <td><b>&nbsp;" .. temperature_high ..  "&nbsp;</b></td>";
+            buf = buf.."<td><a href=\"?btn=HighIncrease\"><button>+Increase</button></a>&nbsp;&nbsp;<a href=\"?btn=HighReduce\"><button>-Reduce</button></a></td></tr>";
+            buf = buf.."<tr><td>Low threshold</td> <td><b>&nbsp;" .. temperature_low ..  "&nbsp;</b></td>";
+            buf = buf.."<td><a href=\"?btn=LowIncrease\"><button>+Increase</button></a>&nbsp;&nbsp;<a href=\"?btn=LowReduce\"><button>-Reduce</button></a></td></tr></table>";
+            
+            client:send(buf);
+            client:close();
+            collectgarbage();
+        end)
+    end)
 end
