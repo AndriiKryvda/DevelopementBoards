@@ -6,6 +6,7 @@ temperature_high = 26
 temperature_low = 24
 
 -- init global variables
+config_filename = "cooler_config";
 max_temperature_high = 40;
 min_temperature_low = 10;
 cooler_is_active = false;
@@ -16,10 +17,12 @@ for i=0, 4 do
   m_humidity[i] = 0;
 end
 
+
 -- init alarms
+tmr.alarm(0, 100, 0, function() ReadSettings() end ) 
 tmr.alarm(1, 1000, 0, function() ReconnectWifi() end ) -- initial connect to WiFi
 tmr.alarm(2, 60000, 1, function() ReconnectWifi() end )
-tmr.alarm(3, 10000, 0, function() ShowWifiStatus() end )
+--tmr.alarm(3, 10000, 0, function() ShowWifiStatus() end )
 tmr.alarm(4, 1000, 1, function() CheckCurrentTemperature() end )
 tmr.alarm(5, 10000, 1, function() RunCooler() end )
 tmr.alarm(6, 5000, 0, function() StartHttpServer() end )  -- start HTTP server
@@ -93,6 +96,7 @@ function ReconnectWifi()
     wifi.sta.config (wifi_name, wifi_pwd ) 
     wifi.sta.connect()
   end
+  ShowWifiStatus();
 end
 
 
@@ -135,6 +139,38 @@ function StartHttpServer()
             client:send(buf);
             client:close();
             collectgarbage();
+
+            result = SaveSettings();
         end)
     end)
+end
+
+
+function SaveSettings()
+  print ("Saving of settings ...");
+  file.open(config_filename, 'w') -- you don't need to do file.remove if you use the 'w' method of writing
+  file.writeline(temperature_high);
+  file.writeline(temperature_low);
+  file.close();
+  print ("Settings were saved");
+end
+
+
+function ReadSettings()
+  print ("Reading of settings ...");
+  local f = file.open(config_filename);
+  if (f == nil) then
+    print ("Setting file '" .. config_filename .. "' doesn't exist.");
+  else
+    result = string.sub(file.readline(value), 1, -2) -- to remove newline character
+    temperature_high = tonumber(result);
+    print (result);
+    
+    result = string.sub(file.readline(value), 1, -2) -- to remove newline character
+    temperature_low = tonumber(result);
+    print (result);
+    
+    file.close();
+    print ("Settings were read");
+  end
 end
