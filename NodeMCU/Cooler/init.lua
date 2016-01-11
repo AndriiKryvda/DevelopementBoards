@@ -1,8 +1,8 @@
 -- init constants
 wifi_name = "ank"
 wifi_pwd = "TanyaIraAndrey"
-temperature_high = 27
-temperature_low = 25
+temperature_high = 29
+temperature_low = 27
 
 pin_temperature = 5
 pin_relay = 8
@@ -125,15 +125,19 @@ function StartHttpServer()
             if(_GET.btn == "HighIncrease" and temperature_high <= max_temperature_high and temperature_high > temperature_low) then
                temperature_high = temperature_high + 1;
                --print("Increase HIGH threshold value to ");
+               result = SaveSettings();
             elseif(_GET.btn == "HighReduce" and temperature_high <= max_temperature_high and temperature_high > temperature_low + 1) then
                temperature_high = temperature_high - 1;
                --print("Reduce HIGH threshold value to ");
+               result = SaveSettings();
             elseif(_GET.btn == "LowIncrease" and temperature_low >= min_temperature_low and temperature_high - 1 > temperature_low) then
                temperature_low = temperature_low + 1;
                --print("Increse LOW threshold value to ");
+               result = SaveSettings();
             elseif(_GET.btn == "LowReduce" and temperature_low >= min_temperature_low and temperature_high > temperature_low) then
                temperature_low = temperature_low - 1;
                --print("Reduce LOW threshold value to ");
+               result = SaveSettings();
             end
 
             buf = buf.."<html><h3><b><font color='#0000FF'>Current temperature: " .. GetAverageTemperature() .. " C</font></b>";
@@ -150,15 +154,13 @@ function StartHttpServer()
             client:send(buf);
             client:close();
             collectgarbage();
-
-            --result = SaveSettings();
         end)
     end)
 end
 
 
 function SaveSettings()
-  print ("Saving of settings ...");
+  --print ("Saving of settings ...");
   file.open(config_filename, 'w') -- you don't need to do file.remove if you use the 'w' method of writing
   file.writeline(temperature_high);
   file.writeline(temperature_low);
