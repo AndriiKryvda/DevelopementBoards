@@ -1,14 +1,18 @@
 -- init constants
-pin = 5
 wifi_name = "ank"
 wifi_pwd = "TanyaIraAndrey"
-temperature_high = 26
-temperature_low = 24
+temperature_high = 27
+temperature_low = 25
 
--- init global variables
+pin_temperature = 5
+pin_relay = 8
+gpio.mode(pin_relay, gpio.OUTPUT);
+
 config_filename = "cooler_config";
 max_temperature_high = 40;
 min_temperature_low = 10;
+
+-- init global variables
 cooler_is_active = false;
 m_temperature = {}
 m_humidity = {}
@@ -24,8 +28,8 @@ tmr.alarm(1, 1000, 0, function() ReconnectWifi() end ) -- initial connect to WiF
 tmr.alarm(2, 60000, 1, function() ReconnectWifi() end )
 --tmr.alarm(3, 10000, 0, function() ShowWifiStatus() end )
 tmr.alarm(4, 1000, 1, function() CheckCurrentTemperature() end )
-tmr.alarm(5, 10000, 1, function() RunCooler() end )
-tmr.alarm(6, 5000, 0, function() StartHttpServer() end )  -- start HTTP server
+tmr.alarm(5, 5000, 1, function() RunCooler() end )
+tmr.alarm(6, 3000, 0, function() StartHttpServer() end )  -- start HTTP server
 
 
 -- ****************************************************************
@@ -34,11 +38,13 @@ function RunCooler()
   if average_temperature >= temperature_high and cooler_is_active == false then
     print("Cooler is ON, temperature "..average_temperature);
     cooler_is_active = true;
+    gpio.write(pin_relay, gpio.HIGH);
     return;
   end
   if average_temperature <= temperature_low and cooler_is_active == true then
     print("Cooler is OFF, temperature "..average_temperature);
     cooler_is_active = false;
+    gpio.write(pin_relay, gpio.LOW);
     return;
   end
 end
@@ -54,7 +60,7 @@ end
 
 
 function GetCurrentTemperature()
-    status,temp,humi,temp_decimial,humi_decimial = dht.read(pin)
+    status,temp,humi,temp_decimial,humi_decimial = dht.read(pin_temperature)
     if( status == dht.OK ) then
       --print("DHT Temperature:"..temp..";".."Humidity:"..humi)
       m_temperature[0] = temp;
@@ -130,17 +136,20 @@ function StartHttpServer()
                --print("Reduce LOW threshold value to ");
             end
 
-            buf = buf.."<h3><b><font color='#0000FF'>Current temperature: " .. GetAverageTemperature() .. " C</font></b></h3>";
+            buf = buf.."<html><h3><b><font color='#0000FF'>Current temperature: " .. GetAverageTemperature() .. " C</font></b>";
+            buf = buf.."</br><a href=\"\"><button>Refresh</button></a></h3>";
             buf = buf.."<table border='0'><tr><td>High threshold</td> <td><b>&nbsp;" .. temperature_high ..  "&nbsp;</b></td>";
             buf = buf.."<td><a href=\"?btn=HighIncrease\"><button>+Increase</button></a>&nbsp;&nbsp;<a href=\"?btn=HighReduce\"><button>-Reduce</button></a></td></tr>";
             buf = buf.."<tr><td>Low threshold</td> <td><b>&nbsp;" .. temperature_low ..  "&nbsp;</b></td>";
             buf = buf.."<td><a href=\"?btn=LowIncrease\"><button>+Increase</button></a>&nbsp;&nbsp;<a href=\"?btn=LowReduce\"><button>-Reduce</button></a></td></tr></table>";
+            buf = buf.."</br>Heap size:  " .. node.heap() .. " bytes";
+            buf = buf.."</html>"
             
             client:send(buf);
             client:close();
             collectgarbage();
 
-            result = SaveSettings();
+            --result = SaveSettings();
         end)
     end)
 end
