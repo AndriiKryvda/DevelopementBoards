@@ -147,9 +147,11 @@ function StartHttpServer()
             buf = buf.."<tr><td>Low threshold</td> <td><b>&nbsp;" .. temperature_low ..  "&nbsp;</b></td>";
             buf = buf.."<td><a href=\"?btn=LowIncrease\"><button>+Increase</button></a>&nbsp;&nbsp;<a href=\"?btn=LowReduce\"><button>-Reduce</button></a></td></tr></table>";
             buf = buf.."</br>Heap size:  " .. node.heap() .. " bytes";
-            buf = buf.."</br>Uptime:  " .. math.floor(tmr.time() / 86400) .. " days " .. math.floor(tmr.time() / 3600) .. " hours " .. math.floor(tmr.time() / 60) .. " minutes";
-            
-            buf = buf.."</html>"
+
+            local seconds_from_reboot = tmr.time();
+            local days = math.floor(seconds_from_reboot / 86400);
+            local hours = math.floor(seconds_from_reboot / 3600) - days*24;
+            buf = buf.."</br>Uptime:  "..days.." days "..hours.." hours </html>";
             
             client:send(buf);
             client:close();
