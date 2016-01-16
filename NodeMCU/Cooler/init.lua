@@ -1,6 +1,6 @@
 -- init constants
 wifi_name = "ank"
-wifi_pwd = "TanyaIraAndrey"
+wifi_pwd = "" -- set WiFi password here !!!
 temperature_high = 29
 temperature_low = 27
 
