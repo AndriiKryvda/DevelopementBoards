@@ -1,5 +1,5 @@
 -- init constants
-wifi_name = "ank"
+wifi_name = "ank"   -- set WiFi SID name
 wifi_pwd = "" -- set WiFi password here !!!
 temperature_high = 29
 temperature_low = 27
@@ -17,7 +17,7 @@ cooler_is_active = false;
 m_temperature = {}
 m_humidity = {}
 for i=0, 4 do
-  m_temperature[i] = -273.0;
+  m_temperature[i] = -273;
   m_humidity[i] = 0;
 end
 
@@ -26,7 +26,7 @@ end
 tmr.alarm(0, 100, 0, function() ReadSettings() end ) 
 tmr.alarm(1, 1000, 0, function() ReconnectWifi() end ) -- initial connect to WiFi
 tmr.alarm(2, 60000, 1, function() ReconnectWifi() end )
---tmr.alarm(3, 10000, 0, function() ShowWifiStatus() end )
+tmr.alarm(3, 10000, 0, function() ShowWifiStatus() end )
 tmr.alarm(4, 1000, 1, function() CheckCurrentTemperature() end )
 tmr.alarm(5, 5000, 1, function() RunCooler() end )
 tmr.alarm(6, 3000, 0, function() StartHttpServer() end )  -- start HTTP server
@@ -80,7 +80,7 @@ function GetAverageTemperature()
     if temp_count > 0 then
       return temp_sum / temp_count;
     else
-      return -273.0;
+      return -273;
     end
   end
 end
